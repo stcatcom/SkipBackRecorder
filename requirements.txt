@@ -1,0 +1,8 @@
+# スキップバックレコーダー 依存パッケージ (Windows版)
+
+# GUI
+PySide6>=6.4.0
+
+# 音声処理
+sounddevice>=0.4.6
+numpy>=1.24.0
