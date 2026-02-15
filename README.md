@@ -103,3 +103,9 @@ See [LICENSE.txt](LICENSE.txt) for details.
 - **Website:** https://stcat.com/
 - **Email:** info@stcat.com
 - **GitHub:** https://github.com/stcatcom/SkipBackRecorder
+
+## Support
+
+If you find this project useful, consider supporting development:
+
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-blue.svg)](https://paypal.me/stcatcom?locale.x=ja_JP&country.x=JP)

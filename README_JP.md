@@ -101,3 +101,9 @@ Copyright (c) 2026 Masaya Miyazaki / Office Stray Cat
 - **Website:** https://stcat.com/
 - **Email:** info@stcat.com
 - **GitHub:** https://github.com/stcatcom/SkipBackRecorder
+
+## サポート
+
+このプロジェクトが役に立った場合は、開発の支援をご検討ください：
+
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-blue.svg)](https://paypal.me/stcatcom?locale.x=ja_JP&country.x=JP)
