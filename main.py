@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SkipBackRecorder - スキップバック機能付き録音アプリケーション
+SkipBackRecorder - Recording application with skip-back feature
 
-メインアプリケーション
+Main application
 
 Copyright (c) 2026 Masaya Miyazaki / Office Stray Cat
 All rights reserved.
@@ -30,21 +30,21 @@ from audio_recorder import AudioRecorderThread
 
 
 class RecordingServer:
-    """録音サーバアプリケーション"""
+    """Recording server application"""
 
     def __init__(self):
         self._app = QApplication(sys.argv)
         self._window = MainWindow()
 
-        # 録音スレッド
+        # Recording thread
         self._audio_thread = AudioRecorderThread()
 
-        # シグナル接続
+        # Connect signals
         self._connect_signals()
 
     def _connect_signals(self):
-        """シグナルを接続"""
-        # 録音 -> UI
+        """Connect signals"""
+        # Recording -> UI
         self._audio_thread.recording_started.connect(
             self._window.on_recording_started
         )
@@ -58,41 +58,41 @@ class RecordingServer:
             self._window.on_error_occurred
         )
 
-        # 録音ボタン
+        # Record button
         record_btn = self._window.get_record_button()
         record_btn.toggled.connect(self._on_record_toggled)
 
     @Slot(bool)
     def _on_record_toggled(self, checked):
-        """録音ボタンのトグル処理"""
+        """Handle record button toggle"""
         if checked:
             self._audio_thread.request_start_recording()
         else:
             self._audio_thread.request_stop_recording()
 
     def run(self):
-        """アプリケーションを実行"""
-        # 録音スレッド開始
+        """Run the application"""
+        # Start recording thread
         self._audio_thread.start()
 
-        # ウィンドウ表示
+        # Show window
         self._window.show()
 
-        # イベントループ実行
+        # Run event loop
         result = self._app.exec()
 
-        # クリーンアップ
+        # Cleanup
         self._cleanup()
 
         return result
 
     def _cleanup(self):
-        """リソースを解放"""
+        """Release resources"""
         self._audio_thread.stop()
 
 
 def main():
-    """エントリーポイント"""
+    """Entry point"""
     server = RecordingServer()
     sys.exit(server.run())
 

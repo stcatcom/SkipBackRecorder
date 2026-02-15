@@ -1,7 +1,7 @@
 """
-SkipBackRecorder - スキップバック機能付き録音アプリケーション
+SkipBackRecorder - Recording application with skip-back feature
 
-録音モジュール - スキップバック録音に対応した録音機能を提供
+Audio recording module - Provides recording functionality with skip-back support
 
 Copyright (c) 2026 Masaya Miyazaki / Office Stray Cat
 All rights reserved.
@@ -34,7 +34,7 @@ from config import (
 
 
 class CircularAudioBuffer:
-    """循環バッファで常時音声を保持するクラス"""
+    """Circular buffer that continuously holds audio samples"""
 
     def __init__(self, duration_seconds, sample_rate, channels):
         self.sample_rate = sample_rate
@@ -44,30 +44,29 @@ class CircularAudioBuffer:
         self._mutex = QMutex()
 
     def add_samples(self, samples):
-        """サンプルをバッファに追加"""
+        """Add samples to the buffer"""
         with QMutexLocker(self._mutex):
             for sample in samples:
                 self.buffer.append(sample)
 
     def get_buffer_contents(self):
-        """バッファの内容を取得してクリア"""
+        """Get buffer contents"""
         with QMutexLocker(self._mutex):
             contents = np.array(list(self.buffer), dtype=np.int16)
             return contents
 
     def clear(self):
-        """バッファをクリア"""
+        """Clear the buffer"""
         with QMutexLocker(self._mutex):
             self.buffer.clear()
 
 
 class AudioRecorder(QObject):
-    """録音を管理するクラス"""
+    """Manages audio recording"""
 
-    # シグナル定義
-    recording_started = Signal(str)  # 録音開始 (ファイルパス)
-    recording_stopped = Signal(str)  # 録音停止 (ファイルパス)
-    error_occurred = Signal(str)  # エラー発生
+    recording_started = Signal(str)  # Recording started (file path)
+    recording_stopped = Signal(str)  # Recording stopped (file path)
+    error_occurred = Signal(str)  # Error occurred
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -79,40 +78,39 @@ class AudioRecorder(QObject):
         self._current_file = None
         self._stream = None
         self._mutex = QMutex()
-        self._current_level = 0.0  # 現在の音声レベル
+        self._current_level = 0.0
 
-        # 出力ディレクトリを作成
         os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     def _audio_callback(self, indata, frames, time_info, status):
-        """音声入力コールバック"""
+        """Audio input callback"""
         if status:
             print(f"Audio callback status: {status}")
 
-        # int16に変換（ステレオ/モノラル両対応）
+        # Convert to int16 (supports both stereo and mono)
         audio_data = (indata * 32767).astype(np.int16)
 
-        # 音声レベルを計算（シグナルは発行せず変数に保存）
+        # Calculate audio level (store in variable, no signal emission)
         self._current_level = np.abs(audio_data).mean() / 32767.0
 
-        # インターリーブ形式に変換（WAV保存用）
+        # Convert to interleaved format (for WAV output)
         if CHANNELS == 2:
-            # ステレオ: [L, R, L, R, ...] の形式に
+            # Stereo: [L, R, L, R, ...] format
             audio_flat = audio_data.flatten('C')
         else:
-            # モノラル: そのまま
+            # Mono: as-is
             audio_flat = audio_data.flatten()
 
-        # 循環バッファに追加（常時）
+        # Always add to circular buffer
         self._circular_buffer.add_samples(audio_flat)
 
-        # 録音中なら録音バッファにも追加
+        # Also add to recording buffer if recording
         with QMutexLocker(self._mutex):
             if self._is_recording:
                 self._recording_buffer.append(audio_flat.copy())
 
     def start_stream(self):
-        """音声ストリームを開始（常時バッファリング）"""
+        """Start audio stream (continuous buffering)"""
         try:
             self._stream = sd.InputStream(
                 samplerate=SAMPLE_RATE,
@@ -122,35 +120,35 @@ class AudioRecorder(QObject):
             )
             self._stream.start()
         except Exception as e:
-            self.error_occurred.emit(f"ストリーム開始エラー: {e}")
+            self.error_occurred.emit(f"Stream start error: {e}")
 
     def stop_stream(self):
-        """音声ストリームを停止"""
+        """Stop audio stream"""
         if self._stream:
             self._stream.stop()
             self._stream.close()
             self._stream = None
 
     def start_recording(self):
-        """録音を開始（スキップバック込み）"""
+        """Start recording (with skip-back)"""
         with QMutexLocker(self._mutex):
             if self._is_recording:
                 return
 
-            # ファイル名を生成
+            # Generate file name
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             self._current_file = os.path.join(
                 OUTPUT_DIR, f"recording_{timestamp}.{OUTPUT_FORMAT}"
             )
 
-            # 先に録音開始（コールバックが新しいサンプルを追加開始）
+            # Start recording first (callback begins adding new samples)
             self._is_recording = True
             self._recording_buffer = []
 
-        # スキップバックバッファの内容を取得（mutexの外で）
+        # Get skip-back buffer contents (outside mutex)
         skip_back_data = self._circular_buffer.get_buffer_contents()
 
-        # スキップバックデータを先頭に挿入
+        # Insert skip-back data at the beginning
         with QMutexLocker(self._mutex):
             if len(skip_back_data) > 0:
                 self._recording_buffer.insert(0, skip_back_data)
@@ -158,14 +156,14 @@ class AudioRecorder(QObject):
         self.recording_started.emit(self._current_file)
 
     def stop_recording(self):
-        """録音を停止してファイルに保存"""
+        """Stop recording and save to file"""
         with QMutexLocker(self._mutex):
             if not self._is_recording:
                 return None
 
             self._is_recording = False
 
-            # 録音データを結合
+            # Concatenate recording data
             if self._recording_buffer:
                 audio_data = np.concatenate(self._recording_buffer)
             else:
@@ -174,7 +172,7 @@ class AudioRecorder(QObject):
             file_path = self._current_file
             self._recording_buffer = []
 
-        # ファイルに保存
+        # Save to file
         if len(audio_data) > 0:
             self._save_wav(file_path, audio_data)
             self.recording_stopped.emit(file_path)
@@ -184,7 +182,7 @@ class AudioRecorder(QObject):
             return None
 
     def _save_wav(self, file_path, audio_data):
-        """WAVファイルとして保存"""
+        """Save as WAV file"""
         try:
             with wave.open(file_path, 'wb') as wf:
                 wf.setnchannels(CHANNELS)
@@ -192,21 +190,21 @@ class AudioRecorder(QObject):
                 wf.setframerate(SAMPLE_RATE)
                 wf.writeframes(audio_data.tobytes())
         except Exception as e:
-            self.error_occurred.emit(f"ファイル保存エラー: {e}")
+            self.error_occurred.emit(f"File save error: {e}")
 
     @property
     def is_recording(self):
-        """録音中かどうか"""
+        """Whether recording is in progress"""
         return self._is_recording
 
     @property
     def current_level(self):
-        """現在の音声レベルを取得"""
+        """Get current audio level"""
         return self._current_level
 
 
 class AudioRecorderThread(QThread):
-    """録音用のスレッド"""
+    """Recording thread"""
 
     recording_started = Signal(str)
     recording_stopped = Signal(str)
@@ -221,18 +219,18 @@ class AudioRecorderThread(QThread):
         self._mutex = QMutex()
 
     def run(self):
-        """スレッド実行"""
+        """Thread execution"""
         self._recorder = AudioRecorder()
 
-        # シグナルを転送
+        # Forward signals
         self._recorder.recording_started.connect(self.recording_started.emit)
         self._recorder.recording_stopped.connect(self.recording_stopped.emit)
         self._recorder.error_occurred.connect(self.error_occurred.emit)
 
-        # ストリーム開始
+        # Start stream
         self._recorder.start_stream()
 
-        # スレッドが停止されるまで待機
+        # Wait until thread is interrupted
         while not self.isInterruptionRequested():
             with QMutexLocker(self._mutex):
                 if self._start_requested:
@@ -242,29 +240,29 @@ class AudioRecorderThread(QThread):
                     self._recorder.stop_recording()
                     self._stop_requested = False
 
-            # 音声レベルを取得してシグナル発行（このスレッドから）
+            # Get audio level and emit signal (from this thread)
             level = self._recorder.current_level
             self.level_changed.emit(level)
 
             self.msleep(30)  # 約33fps でレベル更新
 
-        # 録音中なら停止
+        # Stop recording if in progress
         if self._recorder.is_recording:
             self._recorder.stop_recording()
 
         self._recorder.stop_stream()
 
     def request_start_recording(self):
-        """録音開始をリクエスト"""
+        """Request to start recording"""
         with QMutexLocker(self._mutex):
             self._start_requested = True
 
     def request_stop_recording(self):
-        """録音停止をリクエスト"""
+        """Request to stop recording"""
         with QMutexLocker(self._mutex):
             self._stop_requested = True
 
     def stop(self):
-        """スレッドを停止"""
+        """Stop the thread"""
         self.requestInterruption()
         self.wait()

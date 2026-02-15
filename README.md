@@ -1,96 +1,102 @@
 # SkipBackRecorder
 
-スキップバック機能付き録音アプリケーション
+A recording application with skip-back feature
 
-## 概要
+> [日本語版ドキュメントはこちら (Japanese)](README_JP.md)
 
-SkipBackRecorderは、録音開始ボタンを押す**前**の音声も録音できる「スキップバック録音」機能を備えたWindows向け録音アプリケーションです。
+## Overview
 
-「あ、今の録音しておけばよかった！」という場面でも、設定した秒数分だけ遡って録音を開始できます。
+SkipBackRecorder is a Windows recording application featuring "skip-back recording" — it can capture audio from **before** you press the record button.
 
-## 主な機能
+Even if you think "I wish I had been recording that!", you can go back by a configurable number of seconds and include that audio in your recording.
 
-- **スキップバック録音** - 録音開始時に、指定秒数前からの音声を含めて録音
-- **リアルタイム音声レベル表示** - 入力音声のレベルをリアルタイムで確認
-- **シンプルなUI** - ワンクリック（またはインジケータークリック）で録音開始/停止
-- **録音履歴表示** - 録音したファイルの履歴を表示
+## Features
 
-## スクリーンショット
+- **Skip-back recording** - Include audio from a specified number of seconds before pressing record
+- **Real-time audio level display** - Monitor input audio levels in real time
+- **Simple UI** - Start/stop recording with a single click (button or indicator)
+- **Recording history** - View a list of recorded files
+
+## Screenshot
 
 ![SkipBackRecorder](screenshot.png)
 
-## 動作環境
+## Requirements
 
 - Windows 10/11
-- Python 3.10以上
+- Python 3.10 or later
 
-## ファイル構成
+## File Structure
 
 ```
 SkipBackRecorder/
-├── main.py           # メインアプリケーション
-├── audio_recorder.py # 録音モジュール
-├── ui_main.py        # UIモジュール
-├── config.py         # 設定ファイル
-├── requirements.txt  # 依存パッケージ
-├── LICENSE.txt       # MITライセンス
-├── README.md         # このファイル
-├── SETUP.md          # セットアップガイド
-├── screenshot.png    # スクリーンショット
-└── rec/              # 録音ファイル保存先（自動作成）
+├── main.py           # Main application
+├── audio_recorder.py # Audio recording module
+├── ui_main.py        # UI module
+├── config.py         # Configuration
+├── requirements.txt  # Dependencies
+├── LICENSE.txt       # MIT License
+├── README.md         # English documentation (this file)
+├── README_JP.md      # Japanese documentation
+├── SETUP.md          # Setup guide
+├── screenshot.png    # Screenshot
+└── rec/              # Recording output directory (auto-created)
 ```
 
-## 設定項目
+## Configuration
 
-`config.py` で以下の設定を変更できます：
+You can modify the following settings in `config.py`:
 
-| 項目 | デフォルト値 | 説明 |
-|------|-------------|------|
-| `SAMPLE_RATE` | 44100 | サンプリングレート (Hz) |
-| `CHANNELS` | 2 | チャンネル数 (1=モノラル, 2=ステレオ) |
-| `SKIP_BACK_SECONDS` | 2 | スキップバック秒数 |
-| `OUTPUT_DIR` | ./rec | 録音ファイル保存先 |
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `SAMPLE_RATE` | 44100 | Sample rate (Hz) |
+| `CHANNELS` | 2 | Number of channels (1=Mono, 2=Stereo) |
+| `SKIP_BACK_SECONDS` | 2 | Skip-back duration (seconds) |
+| `OUTPUT_DIR` | ./rec | Recording output directory |
 
-### メモリ消費量の目安
+### Memory Usage Estimates
 
-スキップバック秒数によるメモリ消費量（安全見積もり）：
+Estimated memory consumption by skip-back duration:
 
-| 秒数 | メモリ消費量 |
-|------|-------------|
-| 2秒 | 約 700 KB |
-| 5秒 | 約 1.7 MB |
-| 10秒 | 約 3.4 MB |
-| 30秒 | 約 10 MB |
+| Duration | Memory Usage |
+|----------|-------------|
+| 2s | ~700 KB |
+| 5s | ~1.7 MB |
+| 10s | ~3.4 MB |
+| 30s | ~10 MB |
 
-## クイックスタート
+## Quick Start
 
 ```bash
-# 依存パッケージのインストール
+# Install dependencies
 pip install -r requirements.txt
 
-# 起動
+# Run
 python main.py
+
+# Run without console window (recommended for GUI use)
+pythonw main.py
 ```
 
-詳細なセットアップ手順は [SETUP.md](SETUP.md) を参照してください。
+For detailed setup instructions, see [SETUP.md](SETUP.md).
 
-## 使い方
+## Usage
 
-1. アプリケーションを起動
-2. 音声レベルメーターで入力を確認
-3. 「録音開始」ボタンまたは録音インジケータをクリックして録音開始
-4. 再度クリックして録音停止
-5. 録音ファイルは `rec/` フォルダに保存されます
+1. Launch the application
+2. Verify audio input using the level meter
+3. Click "Start Recording" button or the recording indicator to start recording
+4. Click again to stop recording
+5. Recorded files are saved in the `rec/` folder
 
-## ライセンス
+## License
 
 MIT License
 
 Copyright (c) 2026 Masaya Miyazaki / Office Stray Cat
 
-詳細は [LICENSE.txt](LICENSE.txt) を参照してください。
+See [LICENSE.txt](LICENSE.txt) for details.
 
-## 作者
+## Author
 
 - **Author:** Masaya Miyazaki
 - **Organization:** Office Stray Cat

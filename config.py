@@ -1,15 +1,15 @@
 """
-録音サーバ設定ファイル
-Windows対応版
+Recording server configuration
+Windows compatible
 """
 
-# 録音設定
-SAMPLE_RATE = 44100  # サンプリングレート (Hz)
-CHANNELS = 2  # ステレオ
-CHUNK_SIZE = 2048  # バッファサイズ
-AUDIO_FORMAT = 'int16'  # 音声フォーマット
-SKIP_BACK_SECONDS = 2  # スキップバック秒数
+# Recording settings
+SAMPLE_RATE = 44100  # Sample rate (Hz)
+CHANNELS = 2  # Stereo
+CHUNK_SIZE = 2048  # Buffer size
+AUDIO_FORMAT = 'int16'  # Audio format
+SKIP_BACK_SECONDS = 2  # Skip-back duration (seconds)
 
-# 出力設定
-OUTPUT_DIR = './rec'  # 録音ファイル保存先
-OUTPUT_FORMAT = 'wav'  # 出力フォーマット
+# Output settings
+OUTPUT_DIR = './rec'  # Recording file output directory
+OUTPUT_FORMAT = 'wav'  # Output format
